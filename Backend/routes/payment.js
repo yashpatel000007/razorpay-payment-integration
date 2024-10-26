@@ -20,42 +20,42 @@ router.post('/order', (req, res) => {
             amount: Number(amount * 100),
             currency: "INR",
             receipt: crypto.randomBytes(10).toString("hex"),
-        }
+        };
 
         razorpayInstance.orders.create(options, (error, order) => {
             if (error) {
-                console.log(error);
+                console.error("Razorpay Order Creation Error:", error);
                 return res.status(500).json({ message: "Something Went Wrong!" });
             }
+            if (!order) {
+                console.error("Order is undefined");
+                return res.status(500).json({ message: "Order creation failed" });
+            }
             res.status(200).json({ data: order });
-            console.log(order)
+            console.log("Order created successfully:", order);
         });
     } catch (error) {
+        console.error("Internal Server Error:", error);
         res.status(500).json({ message: "Internal Server Error!" });
-        console.log(error);
     }
 })
 
 router.post('/verify', async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-    // console.log("req.body", req.body);
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ message: "Invalid Payment Details" });
+    }
 
     try {
-        // Create Sign
         const sign = razorpay_order_id + "|" + razorpay_payment_id;
 
-        // Create ExpectedSign
         const expectedSign = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(sign.toString())
             .digest("hex");
 
-        // console.log(razorpay_signature === expectedSign);
-
-        // Create isAuthentic
         const isAuthentic = expectedSign === razorpay_signature;
 
-        // Condition 
         if (isAuthentic) {
             const payment = new Payment({
                 razorpay_order_id,
@@ -63,17 +63,17 @@ router.post('/verify', async (req, res) => {
                 razorpay_signature
             });
 
-            // Save Payment 
             await payment.save();
 
-            // Send Message 
             res.json({
-                message: "Payement Successfully"
+                message: "Payment Successfully"
             });
+        } else {
+            res.status(400).json({ message: "Invalid Signature" });
         }
     } catch (error) {
+        console.error("Verification Error:", error);
         res.status(500).json({ message: "Internal Server Error!" });
-        console.log(error);
     }
 })
 
