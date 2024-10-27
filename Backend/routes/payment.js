@@ -11,7 +11,6 @@ const razorpayInstance = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ROUTE 1 : Create Order Api Using POST Method http://localhost:4000/api/payment/order
 router.post('/order', (req, res) => {
     const { amount } = req.body;
 
