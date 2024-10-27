@@ -7,15 +7,10 @@ connectToMongo();
 const app = express()
 const port = 4000
 
-// middleware
 app.use(express.json());
 app.use(cors());
 
     
-app.get('/', (req, res) => {
-    res.send('Yash Patel')
-})
-
 app.get('/', (req, res) => {
     res.send('Razorpay Payment Gateway Using React And Node Js ')
 })
